@@ -1,6 +1,6 @@
-import { Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import type { Message } from '@/types/chat';
+import { MarkdownRenderer } from '@/lib/markdown-renderer';
 
 interface MessageBubbleProps {
   message: Message;
@@ -11,10 +11,6 @@ export const MessageBubble = ({ message, isDarkMode }: MessageBubbleProps) => {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'user';
 
-  // Detecta blocos de código
-  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-  codeBlockRegex.test(message.content);
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -22,59 +18,15 @@ export const MessageBubble = ({ message, isDarkMode }: MessageBubbleProps) => {
   };
 
   const renderContent = (content: string) => {
-    // Se contém código, renderiza com suporte
-    if (content.includes('```')) {
-      return (
-        <div className="space-y-2">
-          {content.split(/```/g).map((block, i) => {
-            if (i % 2 === 0) {
-              // Texto normal
-              return block && <p key={i} className="whitespace-pre-wrap">{block}</p>;
-            } else {
-              // Bloco de código
-              const lines = block.split('\n');
-              const lang = lines[0] || 'text';
-              const code = lines.slice(1).join('\n').trim();
-
-              return (
-                <div
-                  key={i}
-                  className={`relative rounded-lg overflow-hidden ${
-                    isDarkMode ? 'bg-gray-900' : 'bg-gray-100'
-                  }`}
-                >
-                  <div
-                    className={`flex items-center justify-between px-4 py-2 ${
-                      isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span className="text-xs font-mono text-gray-500">{lang}</span>
-                    <button
-                      onClick={() => copyToClipboard(code)}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
-                      title="Copiar código"
-                    >
-                      {copied ? (
-                        <Check size={16} className="text-green-500" />
-                      ) : (
-                        <Copy size={16} className="text-gray-400" />
-                      )}
-                    </button>
-                  </div>
-                  <pre className="p-4 overflow-x-auto">
-                    <code className={`font-mono text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-                      {code}
-                    </code>
-                  </pre>
-                </div>
-              );
-            }
-          })}
-        </div>
-      );
-    }
-
-    return <p className="whitespace-pre-wrap">{content}</p>;
+    // Renderiza conteúdo com suporte completo a Markdown
+    return (
+      <MarkdownRenderer
+        content={content}
+        isDarkMode={isDarkMode}
+        onCopyCode={copyToClipboard}
+        copied={copied}
+      />
+    );
   };
 
   return (

@@ -259,4 +259,57 @@ code {
   body {
     @apply bg-background text-foreground;}
   html {
-    @apply font-sans;}}
+    @apply font-sans;}
+}
+
+/* Markdown content styles */
+.markdown-content {
+  @apply w-full;
+}
+
+.markdown-content p {
+  @apply whitespace-pre-wrap wrap-break-word;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  @apply font-semibold;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply pl-4;
+}
+
+.markdown-content li {
+  @apply ml-2;
+}
+
+.markdown-content code {
+  @apply font-mono;
+}
+
+.markdown-content pre {
+  @apply overflow-x-auto;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 pl-4 italic;
+}
+
+.markdown-content a {
+  @apply underline;
+}
+
+.markdown-content table {
+  @apply border-collapse w-full;
+}
+
+.markdown-content th,
+.markdown-content td {
+  @apply border px-3 py-2;
+}
