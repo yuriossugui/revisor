@@ -272,3 +272,62 @@ code {
   font-weight: 600;
 }
 
+/* Code block copy button styles */
+@keyframes copySuccess {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.code-copy-btn {
+  transition: all 0.2s ease-in-out;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.code-copy-btn:active {
+  transform: scale(0.95);
+}
+
+.code-copy-btn.copied {
+  animation: copySuccess 0.3s ease-out;
+}
+
+/* Responsive code block styles */
+@media (max-width: 640px) {
+  .code-block-header {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .code-copy-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .code-copy-btn span {
+    display: inline;
+  }
+
+  .code-block-header .lang-label {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .code-copy-btn span:nth-child(2) {
+    display: none;
+  }
+
+  .code-copy-btn {
+    padding: 0.5rem 0.75rem;
+  }
+}

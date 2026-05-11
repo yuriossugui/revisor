@@ -8,11 +8,12 @@ export const ChatLayout = () => {
   const {
     conversations,
     currentConversationId,
+    currentMode,
     isDarkMode,
     isLoading,
     createConversation,
     sendMessage,
-    toggleDarkMode,
+    setMode,
   } = useChatContext();
 
   const currentConversation = conversations.find(
@@ -24,9 +25,10 @@ export const ChatLayout = () => {
       <Sidebar
         isDarkMode={isDarkMode}
         onNewChat={createConversation}
-        onToggleDarkMode={toggleDarkMode}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        currentMode={currentMode}
+        onModeChange={setMode}
       />
 
       <ChatWindow

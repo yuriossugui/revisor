@@ -99,7 +99,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const setMode = useCallback((mode: ChatMode) => {
     setCurrentMode(mode);
-  }, []);
+    createConversation(mode);
+  }, [createConversation]);
 
   const toggleDarkMode = useCallback(() => {
     setIsDarkMode(prev => {

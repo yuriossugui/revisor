@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { Message } from '@/types/chat';
 import { MarkdownRenderer } from '@/lib/markdown-renderer';
 
@@ -8,23 +7,14 @@ interface MessageBubbleProps {
 }
 
 export const MessageBubble = ({ message, isDarkMode }: MessageBubbleProps) => {
-  const [copied, setCopied] = useState(false);
   const isUser = message.role === 'user';
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const renderContent = (content: string) => {
-    // Renderiza conteúdo com suporte completo a Markdown
     return (
       <MarkdownRenderer
         content={content}
         isDarkMode={isDarkMode}
-        onCopyCode={copyToClipboard}
-        copied={copied}
+        isUserMessage={isUser}
       />
     );
   };
@@ -34,7 +24,7 @@ export const MessageBubble = ({ message, isDarkMode }: MessageBubbleProps) => {
       className={`flex gap-3 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       <div
-        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg text-sm ${
           isUser
             ? `${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'} text-white`
             : `${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} ${

@@ -1,21 +1,33 @@
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 
 interface MarkdownRendererProps {
   content: string;
   isDarkMode: boolean;
-  onCopyCode?: (code: string) => void;
-  copied?: boolean;
+  isUserMessage?: boolean;
 }
 
 export const MarkdownRenderer = ({ 
   content, 
   isDarkMode,
-  onCopyCode,
-  copied 
+  isUserMessage = false
 }: MarkdownRendererProps) => {
+  const [copiedCodeBlock, setCopiedCodeBlock] = useState<string | null>(null);
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCodeBlock(code);
+      setTimeout(() => setCopiedCodeBlock(null), 2000);
+    });
+  };
+
+  const shouldShowCopyButton = (lang: string): boolean => {
+    const copiableLangs = ['sql', 'javascript', 'typescript', 'jsx', 'tsx', 'html', 'css', 'json', 'python', 'bash', 'shell', 'sh', 'yaml', 'yml', 'xml', 'java', 'c', 'cpp', 'csharp', 'go', 'rust', 'php', 'ruby', 'swift', 'kotlin'];
+    return copiableLangs.includes(lang.toLowerCase());
+  };
   const components = {
     h1: ({ children }: { children: ReactNode }) => (
       <h1 className={`text-2xl font-bold mt-4 mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -48,7 +60,7 @@ export const MarkdownRenderer = ({
       </h6>
     ),
     p: ({ children }: { children: ReactNode }) => (
-      <p className={`mb-2 leading-relaxed ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <p className={`mb-2 leading-relaxed text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
         {children}
       </p>
     ),
@@ -63,12 +75,12 @@ export const MarkdownRenderer = ({
       </em>
     ),
     ul: ({ children }: { children: ReactNode }) => (
-      <ul className={`list-disc list-inside mb-2 space-y-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <ul className={`list-disc list-inside mb-2 space-y-1 text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
         {children}
       </ul>
     ),
     ol: ({ children }: { children: ReactNode }) => (
-      <ol className={`list-decimal list-inside mb-2 space-y-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <ol className={`list-decimal list-inside mb-2 space-y-1 text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
         {children}
       </ol>
     ),
@@ -87,7 +99,15 @@ export const MarkdownRenderer = ({
         {children}
       </a>
     ),
-    code: ({ inline, children, className }: { inline?: boolean; children: ReactNode; className?: string }) => {
+    code: ({ 
+      inline,
+      className,
+      children
+    }: {
+      inline?: boolean;
+      className?: string;
+      children: ReactNode;
+    }) => {
       if (inline) {
         return (
           <code className={`px-1.5 py-0.5 rounded font-mono text-sm ${
@@ -97,53 +117,86 @@ export const MarkdownRenderer = ({
           </code>
         );
       }
-      return <code>{children}</code>;
-    },
-    pre: ({ children }: { children: ReactNode }) => (
-      <pre className={`rounded-lg overflow-x-auto mb-2 ${
-        isDarkMode ? 'bg-gray-900' : 'bg-gray-100'
-      }`}>
-        {children}
-      </pre>
-    ),
-    codeblock: ({ 
-      node,
-      inline,
-      className,
-      children,
-      ...props
-    }: {
-      node?: any;
-      inline?: boolean;
-      className?: string;
-      children: ReactNode;
-    } & Record<string, any>) => {
+
       const match = /language-(\w+)/.exec(className || '');
       const lang = match ? match[1] : 'text';
       const code = String(children).replace(/\n$/, '');
+      const isCopied = copiedCodeBlock === code;
+
+      if (isUserMessage) {
+        return (
+          <div className={`relative rounded-lg overflow-hidden mb-2 ${
+            isDarkMode ? 'bg-gray-900' : 'bg-gray-100'
+          }`}>
+            <div className={`flex items-center px-4 py-3 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
+            }`}>
+              <span className={`text-xs font-mono font-semibold ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                {lang}
+              </span>
+            </div>
+            <pre className={`p-4 overflow-x-auto ${
+              isDarkMode ? 'bg-gray-950' : 'bg-gray-50'
+            }`}>
+              <code className={`font-mono text-sm leading-relaxed ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-800'
+              }`}>
+                {code}
+              </code>
+            </pre>
+          </div>
+        );
+      }
 
       return (
-        <div className={`relative rounded-lg overflow-hidden mb-2 ${
+        <div className={`relative rounded-lg overflow-hidden mb-2 group ${
           isDarkMode ? 'bg-gray-900' : 'bg-gray-100'
         }`}>
-          <div className={`flex items-center justify-between px-4 py-2 ${
+          <div className={`code-block-header flex items-center justify-between px-4 py-3 gap-2 ${
             isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
           }`}>
-            <span className="text-xs font-mono text-gray-500">{lang}</span>
-            {onCopyCode && (
+            <span className={`lang-label text-xs font-mono font-semibold ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              {lang}
+            </span>
+            {shouldShowCopyButton(lang) && (
               <button
-                onClick={() => onCopyCode(code)}
-                className="p-1 hover:bg-gray-700 rounded transition-colors"
-                title="Copiar código"
+                onClick={() => handleCopyCode(code)}
+                className={`code-copy-btn ${isCopied ? 'copied' : ''} px-3 py-1 rounded text-sm font-medium transition-all duration-200 ${
+                  isCopied 
+                    ? isDarkMode 
+                      ? 'bg-green-900 text-green-200' 
+                      : 'bg-green-200 text-green-900'
+                    : isDarkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                }`}
+                title={isCopied ? 'Copiado!' : 'Copiar código'}
+                aria-label="Copiar código"
               >
-                <span className={`text-sm ${copied ? 'text-green-500' : 'text-gray-400'}`}>
-                  {copied ? '✓' : '📋'}
-                </span>
+                {isCopied ? (
+                  <span className="flex items-center gap-1">
+                    <span>✓</span>
+                    <span>Copiado!</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <span>📋</span>
+                    <span>Copiar</span>
+                  </span>
+                )}
               </button>
             )}
           </div>
-          <pre className="p-4 overflow-x-auto">
-            <code className={`font-mono text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+          <pre className={`p-4 overflow-x-auto ${
+            isDarkMode ? 'bg-gray-950' : 'bg-gray-50'
+          }`}>
+            <code className={`font-mono text-sm leading-relaxed ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-800'
+            }`}>
               {code}
             </code>
           </pre>
